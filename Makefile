@@ -7,6 +7,7 @@
 .PHONY: migratedown
 .PHONY: test
 .PHONY: clean_test
+.PHONY: server
 
 postgres:
 	docker pull postgres && docker run --name bank-postgres -p 5430:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres
@@ -30,3 +31,6 @@ clean_test:
 
 test:
 	go test -v -cover ./...
+
+server: 
+	go	run	main.go 
