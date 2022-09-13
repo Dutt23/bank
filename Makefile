@@ -8,6 +8,7 @@
 .PHONY: test
 .PHONY: clean_test
 .PHONY: server
+.PHONY:	mock
 
 postgres:
 	docker pull postgres && docker run --name bank-postgres -p 5430:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres
@@ -31,6 +32,9 @@ clean_test:
 
 test:
 	go test -v -cover ./...
+
+mock:
+	mockgen -destination db/mock/store.go -package mockdb github/dutt23/bank/db/sqlc Store
 
 server: 
 	go	run	main.go 

@@ -12,7 +12,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func randomInt(min, max int64) int64 {
+func RandomInt(min, max int64) int64 {
 	return min + rand.Int63n(max-min+1)
 }
 
@@ -33,7 +33,7 @@ func RandomOwner() string {
 }
 
 func RandomMoney() int64 {
-	return randomInt(0, 1000)
+	return RandomInt(0, 1000)
 }
 
 func RandomCurrency() string {
