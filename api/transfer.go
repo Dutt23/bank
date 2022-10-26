@@ -64,7 +64,7 @@ func (server *Server) validAccount(ctx *gin.Context, accountID int64, currency s
 
 	if account.Currency != currency {
 		err := fmt.Errorf("account [%d] current mismatch: %s vs %s", account.ID, currency, account.Currency)
-		ctx.JSON(http.StatusBadRequest, err)
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return false
 	}
 	return true
