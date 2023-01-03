@@ -5,3 +5,5 @@ List of dependencies/tools used:
 3) viper
 4) docker
 5) gomock ( add go binary to path like this, PATH=$PATH:~/go/bin)
+6) https://github.com/golang-migrate/migrate
+7) https://formulae.brew.sh/formula/golang-migrate
