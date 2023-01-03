@@ -18,9 +18,10 @@ FOR UPDATE;
 
 -- name: GetAccounts :many
 SELECT * FROM accounts
+where owner = $1
 order by id
-LIMIT $1
-OFFSET $2;
+LIMIT $2
+OFFSET $3;
 
 -- name: UpdateAccount :one
 UPDATE accounts 

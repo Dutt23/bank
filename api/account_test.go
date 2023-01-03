@@ -7,24 +7,28 @@ import (
 	"fmt"
 	mockdb "github/dutt23/bank/db/mock"
 	db "github/dutt23/bank/db/sqlc"
+	"github/dutt23/bank/token"
 	"github/dutt23/bank/util"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetAccountApi(t *testing.T) {
-	account := randomAccount()
+	user := util.RandomOwner()
+	account := randomAccount(user)
 
 	testCases := []struct {
 		name          string
 		accountID     int64
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 	}{{
 		name:      "OK",
 		accountID: account.ID,
@@ -39,6 +43,9 @@ func TestGetAccountApi(t *testing.T) {
 			// Check response
 			require.Equal(t, http.StatusOK, recorder.Code)
 			requireBodyMatchAccount(t, recorder.Body, account)
+		},
+		setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+			addAuth(t, request, tokenMaker, authTypeBearer, user, time.Minute)
 		},
 	},
 		{
@@ -55,6 +62,9 @@ func TestGetAccountApi(t *testing.T) {
 				// Check response
 				require.Equal(t, http.StatusNotFound, recorder.Code)
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuth(t, request, tokenMaker, authTypeBearer, user, time.Minute)
+			},
 		},
 		{
 			name:      "INTERNAL ERROR",
@@ -70,6 +80,9 @@ func TestGetAccountApi(t *testing.T) {
 				// Check response
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuth(t, request, tokenMaker, authTypeBearer, user, time.Minute)
+			},
 		},
 		{
 			name:      "BAD REQUEST",
@@ -83,6 +96,9 @@ func TestGetAccountApi(t *testing.T) {
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				// Check response
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuth(t, request, tokenMaker, authTypeBearer, user, time.Minute)
 			},
 		},
 	}
@@ -107,16 +123,17 @@ func TestGetAccountApi(t *testing.T) {
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 		})
 	}
 }
 
-func randomAccount() db.Account {
+func randomAccount(owner string) db.Account {
 	return db.Account{
 		ID:       util.RandomInt(1, 1000),
-		Owner:    util.RandomOwner(),
+		Owner:    owner,
 		Balance:  util.RandomMoney(),
 		Currency: util.RandomCurrency(),
 	}
