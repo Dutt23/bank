@@ -100,7 +100,7 @@ func TestGetAccountApi(t *testing.T) {
 			// start server
 			// For a golang interface it's not explicit that a child has to implement all functions in parent.
 			// The parent can be imbedded inside the child itself
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/accounts/%d", tc.accountID)
