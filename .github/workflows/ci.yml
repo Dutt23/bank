@@ -45,6 +45,9 @@ jobs:
 
     - name: Run migrations
       run: make migrateup
+      
+    - name: Generate proto modules
+      run: make proto
 
     - name: Test
       run: make test
