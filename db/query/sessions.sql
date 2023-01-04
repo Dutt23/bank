@@ -1,7 +1,7 @@
 -- name: CreateSession :one
 INSERT INTO sessions (
   id, 
-  hashed_password, 
+  username, 
   refresh_token,
   user_agent,
   client_ip,
