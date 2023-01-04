@@ -45,6 +45,31 @@ jobs:
 
     - name: Run migrations
       run: make migrateup
+      
+    - name: Donwload protoc
+      run: |
+            curl  -LO https://github.com/protocolbuffers/protobuf/releases/download/v3.15.8/protoc-3.15.8-linux-x86_64.zip
+            unzip protoc-3.15.8-linux-x86_64.zip  -d protoc_dw 
+            sudo  mv protoc_dw/bin/protoc  /usr/bin/protoc
+            which protoc
+            
+    
+    - name: Donwload proto dependencies
+      run: |
+            go install \
+            github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
+            github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
+            google.golang.org/protobuf/cmd/protoc-gen-go \
+            google.golang.org/grpc/cmd/protoc-gen-go-grpc
+            
+    - name: Create swagger folder
+      run: mkdir -p docs/swagger
+      
+    - name: Create proto folders
+      run: mkdir -p pb
+    
+    - name: Generate proto modules
+      run: make proto
 
     - name: Test
       run: make test
