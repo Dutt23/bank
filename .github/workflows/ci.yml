@@ -52,11 +52,6 @@ jobs:
             unzip protoc-3.15.8-linux-x86_64.zip  -d protoc_dw 
             sudo  mv protoc_dw/bin/protoc  /usr/bin/protoc
             which protoc
-            go install \
-            github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
-            github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
-            google.golang.org/protobuf/cmd/protoc-gen-go \
-            google.golang.org/grpc/cmd/protoc-gen-go-grpc
             
     
     - name: Donwload proto dependencies
@@ -66,6 +61,9 @@ jobs:
             github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
             google.golang.org/protobuf/cmd/protoc-gen-go \
             google.golang.org/grpc/cmd/protoc-gen-go-grpc
+            
+    - name: Create swagger folder
+      run: mkdir -p docs/swagger
     
 
     - name: Generate proto modules
