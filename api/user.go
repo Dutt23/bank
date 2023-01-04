@@ -149,12 +149,12 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	}
 
 	resp := loginUserResponse{
+		User:                  createLogingUserResponse(user),
 		SessionID:             session.ID,
 		RefreshToken:          refreshToken,
 		RefreshTokenExpiresAt: refreshTokenPayload.ExpiredAt,
 		AccessToken:           token,
 		AccessTokenExpiresAt:  payload.ExpiredAt,
-		User:                  createLogingUserResponse(user),
 	}
 
 	ctx.JSON(http.StatusOK, resp)

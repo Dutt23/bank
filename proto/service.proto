@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+// Way to group multiple proto files in one object together
+package pb;
+
+import "rpc_user.proto";
+// Should be sub package of module mentioned in go.mod file
+option go_package = "github/dutt23/bank/pb";
+
+service Bank {
+	rpc CreateUser(CreateUserRequest) returns (CreateUserResponse){}
+
+	rpc LoginUser(LoginUserRequest) returns (LoginUserResponse){}
+}

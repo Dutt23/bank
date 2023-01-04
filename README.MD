@@ -16,3 +16,7 @@ Creating a custom network for both of them. docker network --help
 
 #Migrate
 migrate create -ext sql -dir db/migration -seq <migration_name>
+
+#Gprpc
+install . brew install ptotobufjs. protoc --version
+https://grpc.io/docs/languages/go/quickstart/
