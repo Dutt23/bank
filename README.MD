@@ -19,4 +19,7 @@ migrate create -ext sql -dir db/migration -seq <migration_name>
 
 #Gprpc
 install . brew install ptotobufjs. protoc --version
+<!-- Testing purposes -->
 https://grpc.io/docs/languages/go/quickstart/
+https://github.com/ktr0731/evans#macos
+evans --host localhost --port 9090 -r repl

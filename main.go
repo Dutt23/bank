@@ -4,10 +4,15 @@ import (
 	"database/sql"
 	"github/dutt23/bank/api"
 	db "github/dutt23/bank/db/sqlc"
+	"github/dutt23/bank/gapi"
+	"github/dutt23/bank/pb"
 	"github/dutt23/bank/util"
 	"log"
+	"net"
 
 	_ "github.com/lib/pq"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 // const (
@@ -30,6 +35,11 @@ func main() {
 	}
 
 	store := db.NewStore(conn)
+	// runGinServer(config, store)
+	gprcServer(config, store)
+}
+
+func runGinServer(config util.Config, store db.Store) {
 	server, err := api.NewServer(config, store)
 
 	if err != nil {
@@ -40,4 +50,30 @@ func main() {
 	if err != nil {
 		log.Fatal("Cannot start sever ", err)
 	}
+}
+
+func gprcServer(config util.Config, store db.Store) {
+	server, err := gapi.NewServer(config, store)
+	if err != nil {
+		log.Fatal("Cannot start sever ", err)
+	}
+
+	grpcServer := grpc.NewServer()
+	pb.RegisterBankServer(grpcServer, server)
+	reflection.Register(grpcServer)
+
+	listener, err := net.Listen("tcp", config.GrpcServerAddress)
+
+	if err != nil {
+		log.Fatal("Cannot create listener", err)
+	}
+
+	log.Printf("starting grpc server at %s.", listener.Addr().String())
+
+	err = grpcServer.Serve(listener)
+
+	if err != nil {
+		log.Fatal("Could not start server", err)
+	}
+
 }

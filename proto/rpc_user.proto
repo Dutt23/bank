@@ -4,7 +4,7 @@ syntax = "proto3";
 package pb;
 
 import "user.proto";
-import "google/protobuf/timestamp.Proto";
+import "google/protobuf/timestamp.proto";
 // Should be sub package of module mentioned in go.mod file
 option go_package = "github/dutt23/bank/pb";
 
