@@ -19,12 +19,6 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-// const (
-// 	dbDriver      = "postgres"
-// 	dbSource      = "postgresql://root:secret@localhost:5430/bank?sslmode=disable"
-// 	serverAddress = "localhost:8080"
-// )
-
 func main() {
 	config, err := util.LoadConfig(".")
 
@@ -110,6 +104,9 @@ func runGatewayServer(config util.Config, store db.Store) {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", grpcMux)
+
+	fs := http.FileServer(http.Dir("./docs/swagger"))
+	mux.Handle("/swagger/", http.StripPrefix("/swagger/", fs))
 
 	listener, err := net.Listen("tcp", config.ServerAddress)
 
