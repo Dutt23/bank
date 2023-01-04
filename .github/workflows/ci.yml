@@ -52,6 +52,7 @@ jobs:
             unzip protoc-3.15.8-linux-x86_64.zip  -d protoc_dw 
             sudo  mv protoc_dw/bin/protoc  /usr/bin/protoc
             which protoc
+            go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
     - name: Generate proto modules
       run: make proto
