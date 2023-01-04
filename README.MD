@@ -12,3 +12,7 @@ List of dependencies/tools used:
 Docker parts
 Both of the containers run on the default bridge network, but they can't call each other via names.
 Creating a custom network for both of them. docker network --help
+
+
+#Migrate
+migrate create -ext sql -dir db/migration -seq <migration_name>
