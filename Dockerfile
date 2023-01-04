@@ -12,6 +12,8 @@ RUN go install \
     google.golang.org/grpc/cmd/protoc-gen-go-grpc
 RUN mkdir -p docs/swagger
 RUN mkdir -p pb
+RUN rm -f pb/*.go \
+	rm -f docs/swagger/*.swagger.json
 RUN protoc --proto_path=proto	--grpc-gateway_out=pb	--grpc-gateway_opt=paths=source_relative	--go_out=pb --go_opt=paths=source_relative \
     --go-grpc_out=pb --go-grpc_opt=paths=source_relative \
     --openapiv2_out=docs/swagger	--openapiv2_opt=allow_merge=true,merge_file_name=bank \
