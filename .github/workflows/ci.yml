@@ -64,8 +64,10 @@ jobs:
             
     - name: Create swagger folder
       run: mkdir -p docs/swagger
+      
+    - name: Create proto folders
+      run: mkdir -p pb
     
-
     - name: Generate proto modules
       run: make proto
 
