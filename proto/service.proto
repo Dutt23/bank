@@ -4,11 +4,22 @@ syntax = "proto3";
 package pb;
 
 import "rpc_user.proto";
+import "google/api/annotations.proto";
 // Should be sub package of module mentioned in go.mod file
 option go_package = "github/dutt23/bank/pb";
 
 service Bank {
-	rpc CreateUser(CreateUserRequest) returns (CreateUserResponse){}
+	rpc CreateUser(CreateUserRequest) returns (CreateUserResponse){
+		    option (google.api.http) = {
+			      post: "/v1/create_user"
+			      body: "*"
+			    };
+	}
+	rpc LoginUser(LoginUserRequest) returns (LoginUserResponse){
+		option (google.api.http) = {
+			post: "/v1/login_user"
+			body: "*"
+		};
+	}
 
-	rpc LoginUser(LoginUserRequest) returns (LoginUserResponse){}
 }

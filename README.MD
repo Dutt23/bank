@@ -19,6 +19,10 @@ migrate create -ext sql -dir db/migration -seq <migration_name>
 
 #Gprpc
 install . brew install ptotobufjs. protoc --version
+<!-- Gateways -->
+https://github.com/grpc-ecosystem/grpc-gateway
+protoc-gen-grpc-gateway -help
+*.gw.go File for the httpgateway
 <!-- Testing purposes -->
 https://grpc.io/docs/languages/go/quickstart/
 https://github.com/ktr0731/evans#macos
