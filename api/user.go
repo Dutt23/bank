@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
@@ -85,8 +86,12 @@ type loginUserRequest struct {
 }
 
 type loginUserResponse struct {
-	AccessToken string `json:"username"`
-	User        userResponse
+	SessionID             uuid.UUID `json:"session_id"`
+	AccessToken           string    `json:"access_token"`
+	AccessTokenExpiresAt  time.Time `json:"access_token_expired_at"`
+	RefreshToken          string    `json:"refresh_token"`
+	RefreshTokenExpiresAt time.Time `json:"refresh_token_expired_at"`
+	User                  userResponse
 }
 
 func (server *Server) loginUser(ctx *gin.Context) {
@@ -115,7 +120,28 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	token, err := server.tokenMaker.CreateToken(req.Username, server.config.AccessTokenDuration)
+	token, payload, err := server.tokenMaker.CreateToken(req.Username, server.config.AccessTokenDuration)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	refreshToken, refreshTokenPayload, err := server.tokenMaker.CreateToken(req.Username, server.config.RefreshTokenDuration)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	session, err := server.store.CreateSession(ctx, db.CreateSessionParams{
+		ID:           refreshTokenPayload.ID,
+		RefreshToken: refreshToken,
+		UserAgent:    ctx.Request.UserAgent(),
+		ClientIp:     ctx.ClientIP(),
+		ExpiresAt:    refreshTokenPayload.ExpiredAt,
+		Username:     req.Username,
+	})
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -123,8 +149,12 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	}
 
 	resp := loginUserResponse{
-		AccessToken: token,
-		User:        createLogingUserResponse(user),
+		SessionID:             session.ID,
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiresAt: refreshTokenPayload.ExpiredAt,
+		AccessToken:           token,
+		AccessTokenExpiresAt:  payload.ExpiredAt,
+		User:                  createLogingUserResponse(user),
 	}
 
 	ctx.JSON(http.StatusOK, resp)
