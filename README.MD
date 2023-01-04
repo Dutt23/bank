@@ -28,3 +28,8 @@ protoc-gen-grpc-gateway -help
 https://grpc.io/docs/languages/go/quickstart/
 https://github.com/ktr0731/evans#macos
 evans --host localhost --port 9090 -r repl
+
+
+<!-- Swagger -->
+using statik to serve the page. It stores the binary data inside the memory of the app.
+So it loads after instead of serving it.
