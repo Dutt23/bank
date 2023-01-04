@@ -48,7 +48,7 @@ jobs:
       
     - name: Donwload protoc
       run: |
-            curl  -L https://github.com/protocolbuffers/protobuf/releases/download/v3.15.8/protoc-3.15.8-linux-x86_64.zip
+            curl  -LO https://github.com/protocolbuffers/protobuf/releases/download/v3.15.8/protoc-3.15.8-linux-x86_64.zip
             unzip protoc-3.15.8-linux-x86_64.zip  protoc 
             sudo  mv protoc/bin/protoc  /usr/bin/protoc
             which protoc
