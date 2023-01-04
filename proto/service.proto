@@ -5,9 +5,22 @@ package pb;
 
 import "rpc_user.proto";
 import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 // Should be sub package of module mentioned in go.mod file
 option go_package = "github/dutt23/bank/pb";
 
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "Bank api";
+    version: "1.0";
+    contact: {
+      name: "Test one";
+      url: "https://github.com/Dutt23/bank";
+      email: "none@example.com";
+    };
+  }
+};
+	
 service Bank {
 	rpc CreateUser(CreateUserRequest) returns (CreateUserResponse){
 		    option (google.api.http) = {
