@@ -12,7 +12,7 @@ option go_package = "github/dutt23/bank/pb";
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
     title: "Bank api";
-    version: "1.1";
+    version: "1.2";
     contact: {
       name: "Test one";
       url: "https://github.com/Dutt23/bank";
