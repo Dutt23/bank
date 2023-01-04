@@ -10,6 +10,7 @@
 .PHONY: server
 .PHONY:	mock
 .PHONY:	proto
+.PHONY: evans
 
 postgres:
 	docker pull postgres && docker run --network bank-network --name bank-postgres -p 5430:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres
@@ -42,6 +43,8 @@ proto:
 	protoc --proto_path=proto	--go_out=pb --go_opt=paths=source_relative \
     --go-grpc_out=pb --go-grpc_opt=paths=source_relative \
     proto/*.proto
+evans:
+	evans --host localhost --port 9090 -r repl
 
 server: 
 	go	run	main.go 
