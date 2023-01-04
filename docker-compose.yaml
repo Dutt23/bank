@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  db:
+    image: postgres
+    environment: 
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=bank
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_SOURCE=postgresql://root:secret@db:5432/bank?sslmode=disable
+      # Just makes sure it starts before. Does not make sure if the postgres container is in ready state or not
+    depends_on:
+      - db
+    entrypoint: ["/app/wait-for.sh", "db:5432", "--", "/app/start.sh"]
+    command: ["/app/main"]

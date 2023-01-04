@@ -11,7 +11,7 @@
 .PHONY:	mock
 
 postgres:
-	docker pull postgres && docker run --name bank-postgres -p 5430:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres
+	docker pull postgres && docker run --network bank-network --name bank-postgres -p 5430:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres
 
 createdb:
 	docker exec -it bank-postgres createdb --username=root --owner=root bank
