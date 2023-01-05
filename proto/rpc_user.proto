@@ -32,3 +32,14 @@ message LoginUserResponse {
 	string refresh_token = 5;
 	google.protobuf.Timestamp refresh_token_expired_at = 6;
 }
+
+message UpdateUserRequest {
+	string username = 1;
+	optional string fullname = 2;
+	optional string email = 3;
+	optional string password = 4;
+}
+
+message UpdateUserResponse {
+	User user = 1;
+}

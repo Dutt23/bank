@@ -127,6 +127,62 @@ func (server *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (
 	return resp, nil
 }
 
+func (server *Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
+	violations := validateUpdateUserReqest(req)
+
+	if violations != nil {
+		return nil, invalidArgumentError(violations)
+	}
+
+	hashedPassword, err := util.HashPassword(req.GetPassword())
+
+	if err != nil {
+		return nil, status.Errorf(codes.Unimplemented, "failed to hash password : %s", err)
+	}
+
+	// nullString := sql.NullString{
+	// 	String: req.GetFullname(),
+	// 	Valid:  len(req.GetFullname()) != 0,
+	// }
+
+	// nullEmail := sql.NullString{
+	// 	String: req.GetFullname(),
+	// 	Valid:  len(req.GetEmail()) != 0,
+	// }
+
+	// nullPassword := sql.NullString{
+	// 	String: req.GetFullname(),
+	// 	Valid:  len(req.GetPassword()) != 0,
+	// }
+
+	arg := db.CreateUserParams{
+		Username:       req.GetUsername(),
+		HashedPassword: hashedPassword,
+		Email:          req.GetEmail(),
+		FullName:       req.GetFullname(),
+	}
+
+	user, err := server.store.CreateUser(ctx, arg)
+
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			log.Println(pqErr.Code.Name())
+
+			switch pqErr.Code.Name() {
+			case "unique_violation":
+				return nil, status.Errorf(codes.AlreadyExists, "Username already exists : %s", err)
+			}
+		}
+		return nil, status.Errorf(codes.AlreadyExists, "Failed to create user : %s", err)
+	}
+
+	rsp := &pb.CreateUserResponse{
+		User: createUser(user),
+	}
+
+	return rsp, nil
+}
+
 func validateCreateUserReqest(req *pb.CreateUserRequest) (violations []*errdetails.BadRequest_FieldViolation) {
 	if err := customvalidators.ValidateUserName(req.GetUsername()); err != nil {
 		violations = append(violations, fieldVioldation("username", err))
@@ -141,6 +197,25 @@ func validateCreateUserReqest(req *pb.CreateUserRequest) (violations []*errdetai
 	}
 
 	if err := customvalidators.ValidateEmail(req.GetEmail()); err != nil {
+		violations = append(violations, fieldVioldation("email", err))
+	}
+	return
+}
+
+func validateUpdateUserReqest(req *pb.UpdateUserRequest) (violations []*errdetails.BadRequest_FieldViolation) {
+	if err := customvalidators.ValidateUserName(req.GetUsername()); err != nil {
+		violations = append(violations, fieldVioldation("username", err))
+	}
+
+	if err := customvalidators.ValidatePassword(req.GetPassword()); err != nil && len(req.GetPassword()) != 0 {
+		violations = append(violations, fieldVioldation("password", err))
+	}
+
+	if err := customvalidators.ValidateFullName(req.GetFullname()); err != nil && len(req.GetFullname()) != 0 {
+		violations = append(violations, fieldVioldation("full_name", err))
+	}
+
+	if err := customvalidators.ValidateEmail(req.GetEmail()); err != nil && len(req.GetEmail()) != 0 {
 		violations = append(violations, fieldVioldation("email", err))
 	}
 	return

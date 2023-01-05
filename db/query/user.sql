@@ -11,3 +11,13 @@ INSERT INTO users (
 -- name: GetUser :one
 SELECT * FROM users
 where username = $1 LIMIT 1;  
+
+-- name: UpdateUser :one
+UPDATE users
+SET 
+  hashed_password = $1,
+  full_name = $2,
+  email = $3
+WHERE
+  username = $4
+RETURNING *;
