@@ -134,11 +134,11 @@ func (server *Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest)
 		return nil, invalidArgumentError(violations)
 	}
 
-	hashedPassword, err := util.HashPassword(req.GetPassword())
+	// hashedPassword, err := util.HashPassword(req.GetPassword())
 
-	if err != nil {
-		return nil, status.Errorf(codes.Unimplemented, "failed to hash password : %s", err)
-	}
+	// if err != nil {
+	// 	return nil, status.Errorf(codes.Unimplemented, "failed to hash password : %s", err)
+	// }
 
 	// nullString := sql.NullString{
 	// 	String: req.GetFullname(),
@@ -155,32 +155,32 @@ func (server *Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest)
 	// 	Valid:  len(req.GetPassword()) != 0,
 	// }
 
-	arg := db.CreateUserParams{
-		Username:       req.GetUsername(),
-		HashedPassword: hashedPassword,
-		Email:          req.GetEmail(),
-		FullName:       req.GetFullname(),
-	}
+	// arg := db.CreateUserParams{
+	// 	Username:       req.GetUsername(),
+	// 	HashedPassword: hashedPassword,
+	// 	Email:          req.GetEmail(),
+	// 	FullName:       req.GetFullname(),
+	// }
 
-	user, err := server.store.CreateUser(ctx, arg)
+	// user, err := server.store.CreateUser(ctx, arg)
 
-	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok {
-			log.Println(pqErr.Code.Name())
+	// if err != nil {
+	// 	if pqErr, ok := err.(*pq.Error); ok {
+	// 		log.Println(pqErr.Code.Name())
 
-			switch pqErr.Code.Name() {
-			case "unique_violation":
-				return nil, status.Errorf(codes.AlreadyExists, "Username already exists : %s", err)
-			}
-		}
-		return nil, status.Errorf(codes.AlreadyExists, "Failed to create user : %s", err)
-	}
+	// 		switch pqErr.Code.Name() {
+	// 		case "unique_violation":
+	// 			return nil, status.Errorf(codes.AlreadyExists, "Username already exists : %s", err)
+	// 		}
+	// 	}
+	// 	return nil, status.Errorf(codes.AlreadyExists, "Failed to create user : %s", err)
+	// }
 
-	rsp := &pb.CreateUserResponse{
-		User: createUser(user),
-	}
+	// rsp := &pb.CreateUserResponse{
+	// 	User: createUser(user),
+	// }
 
-	return rsp, nil
+	return nil, nil
 }
 
 func validateCreateUserReqest(req *pb.CreateUserRequest) (violations []*errdetails.BadRequest_FieldViolation) {
