@@ -3,12 +3,14 @@ package gapi
 import (
 	"context"
 	"database/sql"
+	"github/dutt23/bank/customvalidators"
 	db "github/dutt23/bank/db/sqlc"
 	"github/dutt23/bank/pb"
 	"github/dutt23/bank/util"
 	"log"
 
 	"github.com/lib/pq"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -25,6 +27,11 @@ func createUser(user db.User) *pb.User {
 }
 
 func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
+	violations := validateCreateUserReqest(req)
+
+	if violations != nil {
+		return nil, invalidArgumentError(violations)
+	}
 
 	hashedPassword, err := util.HashPassword(req.GetPassword())
 
@@ -61,6 +68,12 @@ func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 }
 
 func (server *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (*pb.LoginUserResponse, error) {
+	violations := validateUserLoginRequest(req)
+
+	if violations != nil {
+		return nil, invalidArgumentError(violations)
+	}
+
 	user, err := server.store.GetUser(ctx, req.GetUsername())
 
 	if err != nil {
@@ -112,4 +125,34 @@ func (server *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (
 	}
 
 	return resp, nil
+}
+
+func validateCreateUserReqest(req *pb.CreateUserRequest) (violations []*errdetails.BadRequest_FieldViolation) {
+	if err := customvalidators.ValidateUserName(req.GetUsername()); err != nil {
+		violations = append(violations, fieldVioldation("username", err))
+	}
+
+	if err := customvalidators.ValidatePassword(req.GetPassword()); err != nil {
+		violations = append(violations, fieldVioldation("password", err))
+	}
+
+	if err := customvalidators.ValidateFullName(req.GetFullname()); err != nil {
+		violations = append(violations, fieldVioldation("full_name", err))
+	}
+
+	if err := customvalidators.ValidateEmail(req.GetEmail()); err != nil {
+		violations = append(violations, fieldVioldation("email", err))
+	}
+	return
+}
+
+func validateUserLoginRequest(req *pb.LoginUserRequest) (violations []*errdetails.BadRequest_FieldViolation) {
+	if err := customvalidators.ValidateUserName(req.GetUsername()); err != nil {
+		violations = append(violations, fieldVioldation("username", err))
+	}
+
+	if err := customvalidators.ValidatePassword(req.GetPassword()); err != nil {
+		violations = append(violations, fieldVioldation("password", err))
+	}
+	return
 }
