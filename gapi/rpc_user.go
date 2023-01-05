@@ -3,6 +3,7 @@ package gapi
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github/dutt23/bank/customvalidators"
 	db "github/dutt23/bank/db/sqlc"
 	"github/dutt23/bank/pb"
@@ -128,6 +129,13 @@ func (server *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (
 }
 
 func (server *Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
+	payload, err := server.authorizeUser(ctx)
+
+	if err != nil {
+		return nil, unauthenticatedError(err)
+	}
+
+	fmt.Printf("Printing client here : %v\n", payload)
 	violations := validateUpdateUserReqest(req)
 
 	if violations != nil {
