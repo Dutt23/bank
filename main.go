@@ -8,9 +8,11 @@ import (
 	"github/dutt23/bank/gapi"
 	"github/dutt23/bank/pb"
 	"github/dutt23/bank/util"
-	"log"
 	"net"
 	"net/http"
+	"os"
+
+	"github.com/rs/zerolog/log"
 
 	_ "github/dutt23/bank/docs/statik"
 
@@ -21,22 +23,28 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"github.com/rakyll/statik/fs"
+	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func main() {
+
 	config, err := util.LoadConfig(".")
 
 	if err != nil {
-		log.Fatalln("Cannot load config files", err)
+		log.Fatal().AnErr("Cannot load config files", err)
+	}
+
+	if config.ENV == "development" {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 
 	if err != nil {
-		log.Fatal("cannot connect to database", err)
+		log.Fatal().AnErr("cannot connect to database", err)
 	}
 
 	store := db.NewStore(conn)
@@ -50,29 +58,30 @@ func runGinServer(config util.Config, store db.Store) {
 	server, err := api.NewServer(config, store)
 
 	if err != nil {
-		log.Fatal("Cannot start server", err)
+		log.Fatal().AnErr("Cannot start server", err)
 	}
 	err = server.Start(config.ServerAddress)
 
 	if err != nil {
-		log.Fatal("Cannot start sever ", err)
+		log.Fatal().AnErr("Cannot start sever ", err)
 	}
 }
 
 func gprcServer(config util.Config, store db.Store) {
 	server, err := gapi.NewServer(config, store)
 	if err != nil {
-		log.Fatal("Cannot start sever ", err)
+		log.Fatal().AnErr("Cannot start sever ", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
+	grpcServer := grpc.NewServer(grpcLogger)
 	pb.RegisterBankServer(grpcServer, server)
 	reflection.Register(grpcServer)
 
 	listener, err := net.Listen("tcp", config.GrpcServerAddress)
 
 	if err != nil {
-		log.Fatal("Cannot create listener", err)
+		log.Fatal().AnErr("Cannot create listener", err)
 	}
 
 	log.Printf("starting grpc server at %s.", listener.Addr().String())
@@ -80,14 +89,14 @@ func gprcServer(config util.Config, store db.Store) {
 	err = grpcServer.Serve(listener)
 
 	if err != nil {
-		log.Fatal("Could not start server", err)
+		log.Fatal().AnErr("Could not start server", err)
 	}
 }
 
 func runGatewayServer(config util.Config, store db.Store) {
 	server, err := gapi.NewServer(config, store)
 	if err != nil {
-		log.Fatal("Cannot start sever ", err)
+		log.Fatal().AnErr("Cannot start sever ", err)
 	}
 
 	jsonOption := runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
@@ -100,14 +109,13 @@ func runGatewayServer(config util.Config, store db.Store) {
 	})
 
 	grpcMux := runtime.NewServeMux(jsonOption)
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	err = pb.RegisterBankHandlerServer(ctx, grpcMux, server)
 
 	if err != nil {
-		log.Fatal("Cannot register handler server", err)
+		log.Fatal().AnErr("Cannot register handler server", err)
 	}
 
 	mux := http.NewServeMux()
@@ -118,7 +126,7 @@ func runGatewayServer(config util.Config, store db.Store) {
 	statikFs, err := fs.New()
 
 	if err != nil {
-		log.Fatal("Cannot serve static file system", err)
+		log.Fatal().AnErr("Cannot serve static file system", err)
 	}
 
 	swaggerHandler := http.StripPrefix("/swagger/", http.FileServer(statikFs))
@@ -127,7 +135,7 @@ func runGatewayServer(config util.Config, store db.Store) {
 	listener, err := net.Listen("tcp", config.ServerAddress)
 
 	if err != nil {
-		log.Fatal("Cannot create listener", err)
+		log.Fatal().AnErr("Cannot create listener", err)
 	}
 
 	log.Printf("starting Http gateway server server at %s.", listener.Addr().String())
@@ -135,7 +143,7 @@ func runGatewayServer(config util.Config, store db.Store) {
 	err = http.Serve(listener, mux)
 
 	if err != nil {
-		log.Fatal("cannot start http gateway server", err)
+		log.Fatal().AnErr("cannot start http gateway server", err)
 	}
 }
 
@@ -143,12 +151,12 @@ func runMigrations(migrationURL, dbSource string) {
 	m, err := migrate.New(migrationURL, dbSource)
 
 	if err != nil {
-		log.Fatal("Cannot create new migrate instance", err)
+		log.Fatal().AnErr("Cannot create new migrate instance", err)
 	}
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal("Cannot run migrate up on the instance", err)
+		log.Fatal().AnErr("Cannot run migrate up on the instance", err)
 	}
 
-	log.Println("database migration successful")
+	log.Info().Msg("database migration successful")
 }
