@@ -11,6 +11,7 @@
 .PHONY:	mock
 .PHONY:	proto
 .PHONY: evans
+.PHONY: redis
 
 postgres:
 	docker pull postgres && docker run --network bank-network --name bank-postgres -p 5430:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres
@@ -52,3 +53,6 @@ evans:
 
 server: 
 	go	run	main.go 
+
+redis:
+	docker run --name redis -p 6379:6379 -d redis:7-alpine

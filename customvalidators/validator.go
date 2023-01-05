@@ -50,8 +50,8 @@ func ValidateFullName(value string) error {
 		return err
 	}
 
-	if !isValidFullName(value) {
-		return fmt.Errorf("must contain only letters or spaces")
-	}
+	// if !isValidFullName(value) {
+	// 	return fmt.Errorf("must contain only letters or spaces")
+	// }
 	return nil
 }

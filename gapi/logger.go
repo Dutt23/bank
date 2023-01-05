@@ -26,7 +26,7 @@ func GrpcLogger(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo
 		logger = log.Error().Err(err)
 	}
 
-	logger.Str("protocol", "grpc").Str("method", info.FullMethod).Str("status_text", statusCode.String()).Int("status_code", int(statusCode)).Dur("duration", duration).Msg("Recieved grpc request")
+	logger.Str("protocol", "grpc").Str("method", info.FullMethod).Str("status_text", statusCode.String()).Int("status_code", int(statusCode)).Dur("duration", duration).Msg("Completed grpc request")
 	return result, err
 }
 
@@ -62,6 +62,6 @@ func HttpLogger(handler http.Handler) http.Handler {
 			logger = log.Error().Bytes("error", rec.Body)
 		}
 		duration := time.Since(startTime)
-		logger.Str("protocol", "http").Str("path", req.RequestURI).Str("status_text", http.StatusText(rec.StatusCode)).Int("status_code", rec.StatusCode).Dur("duration", duration).Msg("Recieved a HTTP request")
+		logger.Str("protocol", "http").Str("path", req.RequestURI).Str("status_text", http.StatusText(rec.StatusCode)).Int("status_code", rec.StatusCode).Dur("duration", duration).Msg("Completed a HTTP request")
 	})
 }

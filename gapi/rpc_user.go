@@ -8,8 +8,11 @@ import (
 	db "github/dutt23/bank/db/sqlc"
 	"github/dutt23/bank/pb"
 	"github/dutt23/bank/util"
+	"github/dutt23/bank/worker"
 	"log"
+	"time"
 
+	"github.com/hibiken/asynq"
 	"github.com/lib/pq"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
@@ -61,6 +64,17 @@ func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		return nil, status.Errorf(codes.AlreadyExists, "Failed to create user : %s", err)
 	}
 
+	taskPayload := &worker.PayloadSendVerifyEmail{
+		Username: req.GetUsername(),
+	}
+
+	opts := []asynq.Option{
+		asynq.MaxRetry(10),
+		asynq.ProcessIn(10 * time.Second),
+		asynq.Queue(worker.CriticalQueue),
+	}
+
+	server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...)
 	rsp := &pb.CreateUserResponse{
 		User: createUser(user),
 	}

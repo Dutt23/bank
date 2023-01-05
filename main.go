@@ -8,10 +8,12 @@ import (
 	"github/dutt23/bank/gapi"
 	"github/dutt23/bank/pb"
 	"github/dutt23/bank/util"
+	"github/dutt23/bank/worker"
 	"net"
 	"net/http"
 	"os"
 
+	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
 
 	_ "github/dutt23/bank/docs/statik"
@@ -48,10 +50,18 @@ func main() {
 	}
 
 	store := db.NewStore(conn)
+
+	redisOpt := asynq.RedisClientOpt{
+		Addr: config.RedisAddress,
+	}
+
+	taskDistributor := worker.NewRedisTaskDistributor(redisOpt)
+
 	runMigrations(config.MigrationURL, config.DBSource)
+	go runTaskProcessors(redisOpt, store)
 	// runGinServer(config, store)
-	go runGatewayServer(config, store)
-	gprcServer(config, store)
+	go runGatewayServer(config, store, taskDistributor)
+	gprcServer(config, store, taskDistributor)
 }
 
 func runGinServer(config util.Config, store db.Store) {
@@ -67,8 +77,8 @@ func runGinServer(config util.Config, store db.Store) {
 	}
 }
 
-func gprcServer(config util.Config, store db.Store) {
-	server, err := gapi.NewServer(config, store)
+func gprcServer(config util.Config, store db.Store, distributor worker.TaskDistributor) {
+	server, err := gapi.NewServer(config, store, distributor)
 	if err != nil {
 		log.Fatal().AnErr("Cannot start sever ", err)
 	}
@@ -93,8 +103,8 @@ func gprcServer(config util.Config, store db.Store) {
 	}
 }
 
-func runGatewayServer(config util.Config, store db.Store) {
-	server, err := gapi.NewServer(config, store)
+func runGatewayServer(config util.Config, store db.Store, distributor worker.TaskDistributor) {
+	server, err := gapi.NewServer(config, store, distributor)
 	if err != nil {
 		log.Fatal().AnErr("Cannot start sever ", err)
 	}
@@ -160,4 +170,13 @@ func runMigrations(migrationURL, dbSource string) {
 	}
 
 	log.Info().Msg("database migration successful")
+}
+
+func runTaskProcessors(redisOpt asynq.RedisClientOpt, store db.Store) {
+	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store)
+	log.Info().Msg("start task processor")
+
+	if err := taskProcessor.Start(); err != nil {
+		log.Fatal().Err(err).Msg("Failed to start  task processor")
+	}
 }
