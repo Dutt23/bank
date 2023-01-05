@@ -14,6 +14,10 @@ import (
 
 	_ "github/dutt23/bank/docs/statik"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/golang-migrate/migrate/v4/source/github"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"github.com/rakyll/statik/fs"
@@ -36,6 +40,7 @@ func main() {
 	}
 
 	store := db.NewStore(conn)
+	runMigrations(config.MigrationURL, config.DBSource)
 	// runGinServer(config, store)
 	go runGatewayServer(config, store)
 	gprcServer(config, store)
@@ -132,4 +137,18 @@ func runGatewayServer(config util.Config, store db.Store) {
 	if err != nil {
 		log.Fatal("cannot start http gateway server", err)
 	}
+}
+
+func runMigrations(migrationURL, dbSource string) {
+	m, err := migrate.New(migrationURL, dbSource)
+
+	if err != nil {
+		log.Fatal("Cannot create new migrate instance", err)
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatal("Cannot run migrate up on the instance", err)
+	}
+
+	log.Println("database migration successful")
 }
