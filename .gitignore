@@ -3,3 +3,5 @@
 /pb
 /docs/statik
 app.env
+*.log
+schema.sql

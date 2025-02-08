@@ -12,6 +12,8 @@
 .PHONY:	proto
 .PHONY: evans
 .PHONY: redis
+.PHONY: db_schema
+.PHONY: db_docs
 
 postgres:
 	docker pull postgres && docker run --network bank-network --name bank-postgres -p 5430:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres
@@ -38,6 +40,12 @@ test:
 
 mock:
 	mockgen -destination db/mock/store.go -package mockdb github/dutt23/bank/db/sqlc Store
+
+db_docs:
+	dbdocs build doc/db.dbml
+
+db_schema:
+	dbml2sql --postgres -o docs/schema.sql docs/db.dbml
 
 proto:
 	rm -f pb/*.go
