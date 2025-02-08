@@ -6,6 +6,7 @@ import (
 	"github/dutt23/bank/api"
 	db "github/dutt23/bank/db/sqlc"
 	"github/dutt23/bank/gapi"
+	"github/dutt23/bank/mail"
 	"github/dutt23/bank/pb"
 	"github/dutt23/bank/util"
 	"github/dutt23/bank/worker"
@@ -58,7 +59,7 @@ func main() {
 	taskDistributor := worker.NewRedisTaskDistributor(redisOpt)
 
 	runMigrations(config.MigrationURL, config.DBSource)
-	go runTaskProcessors(redisOpt, store)
+	go runTaskProcessors(config, redisOpt, store)
 	// runGinServer(config, store)
 	go runGatewayServer(config, store, taskDistributor)
 	gprcServer(config, store, taskDistributor)
@@ -172,8 +173,9 @@ func runMigrations(migrationURL, dbSource string) {
 	log.Info().Msg("database migration successful")
 }
 
-func runTaskProcessors(redisOpt asynq.RedisClientOpt, store db.Store) {
-	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store)
+func runTaskProcessors(config util.Config, redisOpt asynq.RedisClientOpt, store db.Store) {
+	mailer := mail.NewGmailSender(config.EmailSenderName, config.EmailSenderAdr, config.EmailSenderPassword)
+	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store, mailer)
 	log.Info().Msg("start task processor")
 
 	if err := taskProcessor.Start(); err != nil {

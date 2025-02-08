@@ -1,3 +1,4 @@
+DB_URL=postgresql://root:secret@localhost:5430/bank?sslmode=disable
 
 .PHONY: postgres
 .PHONY: createdb
@@ -14,6 +15,7 @@
 .PHONY: redis
 .PHONY: db_schema
 .PHONY: db_docs
+.PHONY: new_migration
 
 postgres:
 	docker pull postgres && docker run --network bank-network --name bank-postgres -p 5430:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres
@@ -24,10 +26,10 @@ sqlc:
 	sqlc generate
 
 migrateup:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5430/bank?sslmode=disable" -verbose up
+	migrate -path db/migration -database "$(DB_URL)" -verbose up
 
 migratedown:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5430/bank?sslmode=disable" -verbose down
+	migrate -path db/migration -database "$(DB_URL)" -verbose down
 
 dropdb:
 	docker exec -it bank-postgres dropdb --username=root bank
@@ -46,6 +48,9 @@ db_docs:
 
 db_schema:
 	dbml2sql --postgres -o docs/schema.sql docs/db.dbml
+
+new_migration: 
+	migrate create -ext sql -dir db/migration -seq $(name)
 
 proto:
 	rm -f pb/*.go

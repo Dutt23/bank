@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	db "github/dutt23/bank/db/sqlc"
+	"github/dutt23/bank/util"
 
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
@@ -50,6 +52,28 @@ func (processor RedisTaskProcessor) ProcessTaskSendVerifyEmail(ctx context.Conte
 	}
 
 	// TODO: send email
+	ve, err := processor.store.CreateVerifyEmail(ctx, db.CreateVerifyEmailParams{
+		Username: user.Username,
+		Email: user.Email,
+		SecretCode: util.RandomString(32),
+	})
+
+	if err != nil {
+		return fmt.Errorf("Failed to create verify email %w", err)
+	}
+
+	subject := "Welcome to simple bank"
+	verifyUrl := fmt.Sprintf("http://simple-bank.org?id=%d&secret_code=%s", ve.ID, ve.SecretCode)
+	content := fmt.Sprintf(`Hello %s <br />
+	Thankyou for registering with us
+	Please <a href="%s">click here </a> to verify your email address 
+	`, user.FullName, verifyUrl)
+	to := []string{user.Email}
+
+	err = processor.mailer.SendEmail(subject, content, to, nil, nil , nil);
+	if err != nil {
+		return fmt.Errorf("failed to send verify email: %w", err)
+	}
 
 	log.Info().Str("type", task.Type()).Bytes("payload", task.Payload()).Str("email", user.Email).Msg("processed task")
 	return nil

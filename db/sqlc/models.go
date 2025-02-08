@@ -5,6 +5,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -47,10 +48,21 @@ type Transfer struct {
 }
 
 type User struct {
-	Username       string    `json:"username"`
-	HashedPassword string    `json:"hashed_password"`
-	FullName       string    `json:"full_name"`
-	Email          string    `json:"email"`
-	ChangedAt      time.Time `json:"changed_at"`
-	CreatedAt      time.Time `json:"created_at"`
+	Username        string    `json:"username"`
+	HashedPassword  string    `json:"hashed_password"`
+	FullName        string    `json:"full_name"`
+	Email           string    `json:"email"`
+	ChangedAt       time.Time `json:"changed_at"`
+	CreatedAt       time.Time `json:"created_at"`
+	IsEmailVerified bool      `json:"is_email_verified"`
+}
+
+type VerifyEmail struct {
+	ID         sql.NullInt64 `json:"id"`
+	Username   string        `json:"username"`
+	Email      string        `json:"email"`
+	SecretCode string        `json:"secret_code"`
+	IsUsed     bool          `json:"is_used"`
+	CreatedAt  time.Time     `json:"created_at"`
+	ExpiredAt  time.Time     `json:"expired_at"`
 }

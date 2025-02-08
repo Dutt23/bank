@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	db "github/dutt23/bank/db/sqlc"
+	"github/dutt23/bank/mail"
 
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
@@ -21,9 +22,10 @@ type Proccessor interface {
 type RedisTaskProcessor struct {
 	server *asynq.Server
 	store  db.Store
+	mailer mail.EmailSender
 }
 
-func NewRedisTaskProcessor(redisOpts asynq.RedisClientOpt, store db.Store) Proccessor {
+func NewRedisTaskProcessor(redisOpts asynq.RedisClientOpt, store db.Store, mailer mail.EmailSender) Proccessor {
 
 	server := asynq.NewServer(redisOpts, asynq.Config{
 		Queues: map[string]int{
@@ -40,5 +42,6 @@ func NewRedisTaskProcessor(redisOpts asynq.RedisClientOpt, store db.Store) Procc
 	return &RedisTaskProcessor{
 		server: server,
 		store:  store,
+		mailer: mailer,
 	}
 }
