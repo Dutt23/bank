@@ -19,6 +19,9 @@ type Config struct {
 	GrpcServerAddress    string        `mapstructure:"GRPC_SERVER_ADDRESS"`
 	ENV                  string        `mapstructure:"ENV"`
 	RedisAddress         string        `mapstructure:"REDIS_URL"`
+	EmailSenderName      string        `mapstructure:"EMAIL_SENDER_NAME"`
+	EmailSenderAdr       string        `mapstructure:"EMAIL_SENDER_ADR"`
+	EmailSenderPassword  string        `mapstructure:"EMAIL_SENDER_PASSWORD"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
